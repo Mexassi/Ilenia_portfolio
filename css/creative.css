@@ -422,3 +422,7 @@ body {
 .quote {
   color: #171717!important;
 }
+.profile-small {
+  width: 150px;
+  margin: auto;
+}
