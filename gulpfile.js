@@ -6,6 +6,7 @@ var cleanCSS = require('gulp-clean-css');
 var rename = require("gulp-rename");
 var uglify = require('gulp-uglify');
 var pkg = require('./package.json');
+var $ = require('gulp-load-plugins')();
 
 // Set the banner content
 var banner = ['/*!\n',
@@ -95,4 +96,54 @@ gulp.task('dev', ['browserSync', 'less', 'minify-css', 'minify-js'], function() 
     // Reloads the browser whenever HTML or JS files change
     gulp.watch('*.html', browserSync.reload);
     gulp.watch('js/**/*.js', browserSync.reload);
+});
+
+gulp.task('html', function () {
+  var assets = $.useref.assets({searchPath: ['.', '/js', '/css']});
+
+  return gulp.src('./*.html')
+    .pipe(assets)
+    .pipe(assets.restore())
+    .pipe($.useref())
+    .pipe($.if('*.html', $.minifyHtml({conditionals: true, loose: true})))
+    .pipe(gulp.dest('dist'));
+});
+
+gulp.task('js', function () {
+  return gulp.src('./js/creative.min.js')
+  .pipe(gulp.dest('./dist/js'));
+});
+
+gulp.task('css', function () {
+  return gulp.src('./css/creative.min.css')
+  .pipe(gulp.dest('./dist/css'));
+});
+
+gulp.task('vendor', function () {
+  return gulp.src('./vendor/**/*.*')
+  .pipe(gulp.dest('./dist/vendor'));
+});
+
+gulp.task('images', function () {
+  return gulp.src('./img/**/*')
+    .pipe($.imagemin({
+      progressive: true,
+      interlaced: true,
+      // don't remove IDs from SVGs, they are often used
+      // as hooks for embedding and styling
+      svgoPlugins: [{cleanupIDs: false}]
+    }))
+    .pipe(gulp.dest('dist/img'));
+});
+
+gulp.task('clean', require('del').bind(null, ['.tmp', 'dist']));
+
+gulp.task('build', ['html', 'images', 'js', 'css', 'vendor'], function () {
+  return gulp.src('dist/**/*').pipe($.size({title: 'build', gzip: true}));
+});
+
+gulp.task('deploy', ['build'], function() {
+  return gulp.src('dist')
+    .pipe($.subtree())
+    .pipe($.clean());
 });
