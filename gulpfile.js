@@ -101,7 +101,7 @@ gulp.task('dev', ['browserSync', 'less', 'minify-css', 'minify-js'], function() 
 gulp.task('html', function () {
   var assets = $.useref.assets({searchPath: ['.', '/js', '/css']});
 
-  return gulp.src('./*.html')
+  return gulp.src(['./*.html', './robots.txt'])
     .pipe(assets)
     .pipe(assets.restore())
     .pipe($.useref())
